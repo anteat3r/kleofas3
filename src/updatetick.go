@@ -1,10 +1,8 @@
 package src
 
 import (
-	"database/sql"
 	"encoding/json"
 
-	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/tools/types"
 )
@@ -61,25 +59,28 @@ func Tick(dao *daos.Dao) func() {
       datares = string(dataresb)
     }
 
-    err = UpdateField(dao, record, "last_fetched", types.NowDateTime())
-    if err != nil { LogError(err); return }
-
-    datarec, err := dao.FindFirstRecordByFilter(
-      "data",
-      "owner = {:owner} && type = {:type}",
-      dbx.Params{"owner": record.GetString("name"), "type": record.GetString("type")},
+    err = UpdateField(
+      dao,
+      record,
+      "last_fetched",
+      types.NowDateTime(),
     )
-    if err == sql.ErrNoRows {
-      datarec, err = NewRecord(dao, "data")
-      if err != nil { LogError(err); return }
-
-      datarec.Set("owner", record.GetString("name"))
-      datarec.Set("type", record.GetString("type"))
-    } else if err != nil { LogError(err); return }
-
-    datarec.Set("data", datares)
-
-    err = dao.SaveRecord(datarec)
     if err != nil { LogError(err); return }
+
+    err = UpdateField(
+      dao,
+      user,
+      "last_used",
+      types.NowDateTime(),
+    )
+    if err != nil { LogError(err); return }
+
+    err = StoreData(
+      dao,
+      record.GetString("name"),
+      record.GetString("type"),
+      datares,
+    )
+    if err != nil { LogError(err) }
   }
 }

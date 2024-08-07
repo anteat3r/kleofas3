@@ -39,16 +39,13 @@ func BakaQuery(
 
   try_access:
     bodybuffer = strings.NewReader(body)
-    if method == "GET" {
-      bodybuffer = nil
-    }
     req, err = http.NewRequest(
       method,
       "https://bakalari.gchd.cz/bakaweb/api/3/" + endpoint,
       bodybuffer,
     )
-    req.Header.Set("Authorization", "Bearer " + user.GetString(USERS_ACCESS_TOKEN))
     req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+    req.Header.Set("Authorization", "Bearer " + user.GetString(USERS_ACCESS_TOKEN))
     if err != nil { return 0, "", err }
     resp, err = http.DefaultClient.Do(req)
     if err != nil { return 0, "", err }
@@ -61,6 +58,7 @@ func BakaQuery(
     }
   
   try_refresh:
+    LogInfo("refreshing")
     req2, err := http.NewRequest(
       "POST",
       "https://bakalari.gchd.cz/bakaweb/api/login",

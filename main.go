@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/anteat3r/kleofas3/src"
 	"github.com/labstack/echo/v5"
@@ -13,7 +14,6 @@ import (
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/cron"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 func main() {
@@ -50,10 +50,28 @@ func main() {
       // apis.RequireRecordAuth("users"),
     )
     e.Router.GET("/test/:user", func(c echo.Context) error {
+      tm := time.Now()
       username := c.PathParam("user")
       user, _ := app.Dao().FindFirstRecordByData("users", "username", username)
-      data := user.Get("last_used").(types.DateTime)
-      return c.String(200, fmt.Sprintf("%v %T\n", data.IsZero(), data))
+      var wg sync.WaitGroup
+      for name, endp := range map[string]string{
+        "marks": "marks",
+        "events": "events/my",
+        "timetable": "timetable/actual",
+        "absence": "absence/student",
+        "nexttimetable": "timetable/actual?date=" +
+          time.Now().Add(time.Hour * time.Duration(24 * 7)).Format("2006-01-02"),
+      } {
+        wg.Add(1)
+        _, res, err := src.BakaQuery(app.Dao(), user, "GET", endp, "")
+        if err != nil { continue }
+        src.StoreData(app.Dao(), user.Username(), name, res)
+        // src.LogInfo(sc, res, err)
+        wg.Done()
+      }
+      wg.Wait()
+      src.LogInfo(time.Now().Sub(tm))
+      return c.String(200, "")
     })
 
     scheduler.Start()
