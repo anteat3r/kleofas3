@@ -1,11 +1,12 @@
 module github.com/anteat3r/kleofas3
 
-go 1.22.5
+go 1.22.6
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7 // indirect
 	github.com/SherClockHolmes/webpush-go v1.3.0 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
+	github.com/anteat3r/golog v0.0.0-20240817135639-788d41e6c0f3 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.30.1 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.3 // indirect

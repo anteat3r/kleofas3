@@ -22,6 +22,7 @@ const (
   SOURCES_NAME = "name"
   SOURCES_TYPE = "type"
   SOURCES_LAST_FETCHED = "last_fetched"
+  SOURCES_DETAIL = "detail"
   
   BASE_URL = "https://bakalari.gchd.cz/bakaweb/"
   TIMETABLE_PUBLIC = "TimeTable/Public"

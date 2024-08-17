@@ -10,6 +10,7 @@ import (
 	"github.com/pocketbase/pocketbase/daos"
 	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/tools/types"
+  log "github.com/anteat3r/golog"
 )
 
 func BakaQuery(
@@ -58,7 +59,7 @@ func BakaQuery(
     }
   
   try_refresh:
-    LogInfo("refreshing")
+    log.LogInfo("refreshing")
     req2, err := http.NewRequest(
       "POST",
       "https://bakalari.gchd.cz/bakaweb/api/login",
@@ -67,14 +68,14 @@ func BakaQuery(
     )
     req2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
     if err != nil { return 0, "", err }
-    resp2, err := http.DefaultClient.Do(req)
+    resp2, err := http.DefaultClient.Do(req2)
     if err != nil { return 0, "", err }
 
     if resp2.StatusCode == 200 {
       res, err := io.ReadAll(resp2.Body)
       if err != nil { return 0, "", err }
       resp2.Body.Close()
-      jres := bakaLoginResponse{}
+      jres := BakaLoginResponse{}
       json.Unmarshal(res, &jres)
 
       user.Set(USERS_ACCESS_TOKEN, jres.AccessToken)
@@ -92,7 +93,7 @@ func BakaQuery(
   return 0, "", nil
 }
 
-type bakaLoginResponse struct {
+type BakaLoginResponse struct {
   UserId string `json:"bak:UserId"`
   AccessToken string `json:"access_token"`
   TokenType string `json:"token_type"`

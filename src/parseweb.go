@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-shiori/dom"
 	"golang.org/x/net/html"
+  log "github.com/anteat3r/golog"
 )
 
 type TimeTableCell struct {
@@ -81,9 +82,9 @@ func ParseTimeTableWeb(htmldoc string) (TimeTable, error) {
     }
 
     dayel := dom.QuerySelector(row, ".bk-day-day")
-    if dayel == nil { LogError(dayel) }
+    if dayel == nil { log.LogError(dayel) }
     dateel := dom.QuerySelector(row, ".bk-day-date")
-    if dateel == nil { LogError(dateel) }
+    if dateel == nil { log.LogError(dateel) }
 
     rowres.Title = dom.InnerHTML(dayel) + " " + dom.InnerHTML(dateel)
 

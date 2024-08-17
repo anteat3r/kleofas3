@@ -1,10 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
-	"sync"
-	"time"
 
 	"github.com/anteat3r/kleofas3/src"
 	"github.com/labstack/echo/v5"
@@ -13,6 +12,7 @@ import (
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/models"
 	"github.com/pocketbase/pocketbase/tools/cron"
 )
 
@@ -24,12 +24,12 @@ func main() {
   app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
     scheduler := cron.New()
 
-    scheduler.MustAdd(
-      "tick",
-      // TODO: set to normal
-      "* 7-20 * * *",
-      src.Tick(app.Dao()),
-    )
+    // scheduler.MustAdd(
+    //   "tick",
+    //   // TODO: set to normal
+    //   "* 7-20 * * *",
+    //   src.Tick(app.Dao()),
+    // )
 
     scheduler.MustAdd(
       "srcsreload",
@@ -49,30 +49,14 @@ func main() {
       },
       // apis.RequireRecordAuth("users"),
     )
-    e.Router.GET("/test/:user", func(c echo.Context) error {
-      tm := time.Now()
-      username := c.PathParam("user")
-      user, _ := app.Dao().FindFirstRecordByData("users", "username", username)
-      var wg sync.WaitGroup
-      for name, endp := range map[string]string{
-        "marks": "marks",
-        "events": "events/my",
-        "timetable": "timetable/actual",
-        "absence": "absence/student",
-        "nexttimetable": "timetable/actual?date=" +
-          time.Now().Add(time.Hour * time.Duration(24 * 7)).Format("2006-01-02"),
-      } {
-        wg.Add(1)
-        _, res, err := src.BakaQuery(app.Dao(), user, "GET", endp, "")
-        if err != nil { continue }
-        src.StoreData(app.Dao(), user.Username(), name, res)
-        // src.LogInfo(sc, res, err)
-        wg.Done()
-      }
-      wg.Wait()
-      src.LogInfo(time.Now().Sub(tm))
-      return c.String(200, "")
-    })
+    e.Router.POST("/test", func(c echo.Context) error {
+      user := c.Get(apis.ContextAuthRecordKey).(*models.Record)
+      sc, res, err := src.BakaQuery(app.Dao(), user, "GET", "timetable/actual?date=2024-05-13", "")
+      src.LogInfo(sc, err)
+      tt, err := src.ProcessTimeTable(app.Dao(), user, res)
+      src.LogInfo(err)
+      return c.String(200, fmt.Sprintf("%#v", tt))
+    }, apis.RequireRecordAuth("users"))
 
     scheduler.Start()
 
